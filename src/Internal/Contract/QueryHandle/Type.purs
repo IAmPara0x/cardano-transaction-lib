@@ -10,7 +10,7 @@ import Ctl.Internal.Cardano.Types.Transaction
   , TransactionOutput
   , UtxoMap
   )
-import Ctl.Internal.Cardano.Types.Value (AssetClass)
+import Ctl.Internal.Cardano.Types.Value (AssetClass, CurrencySymbol)
 import Ctl.Internal.Contract.QueryHandle.Error (GetTxMetadataError)
 import Ctl.Internal.QueryM.Ogmios
   ( AdditionalUtxoSet
@@ -25,6 +25,7 @@ import Ctl.Internal.Types.Chain as Chain
 import Ctl.Internal.Types.Datum (DataHash, Datum)
 import Ctl.Internal.Types.EraSummaries (EraSummaries)
 import Ctl.Internal.Types.PubKeyHash (StakePubKeyHash)
+import Ctl.Internal.Types.TokenName (TokenName)
 import Ctl.Internal.Types.Scripts (StakeValidatorHash)
 import Ctl.Internal.Types.Transaction (TransactionHash, TransactionInput)
 import Ctl.Internal.Types.TransactionMetadata (GeneralTransactionMetadata)
@@ -46,6 +47,7 @@ type QueryHandle =
   , utxosAt :: Address -> AffE UtxoMap
   , utxosAtScriptHash :: ScriptHash -> AffE UtxoMap
   , utxosWithAssetClass :: AssetClass -> AffE UtxoMap
+  , utxosWithCurrency :: CurrencySymbol -> Maybe TokenName -> AffE UtxoMap
   , getChainTip :: AffE Chain.Tip
   , getCurrentEpoch :: Aff CurrentEpoch
   -- TODO Capture errors from all backends

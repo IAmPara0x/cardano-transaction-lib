@@ -58,6 +58,7 @@ module Ctl.Internal.Service.Blockfrost
   , utxosAt
   , utxosAtScriptHash
   , utxosWithAssetClass
+  , utxosWithCurrency
   ) where
 
 import Prelude
@@ -119,7 +120,7 @@ import Ctl.Internal.Cardano.Types.Transaction
   , UtxoMap
   , poolPubKeyHashToBech32
   )
-import Ctl.Internal.Cardano.Types.Value (AssetClass, Coin(Coin), Value)
+import Ctl.Internal.Cardano.Types.Value (AssetClass, CurrencySymbol,Coin(Coin), Value)
 import Ctl.Internal.Cardano.Types.Value
   ( lovelaceValueOf
   , mkSingletonNonAdaAsset
@@ -170,6 +171,7 @@ import Ctl.Internal.Service.Helpers
   )
 import Ctl.Internal.Types.Aliases (Bech32String)
 import Ctl.Internal.Types.BigNum (BigNum)
+import Ctl.Internal.Types.TokenName (TokenName)
 import Ctl.Internal.Types.BigNum as BigNum
 import Ctl.Internal.Types.ByteArray (ByteArray, byteArrayToHex)
 import Ctl.Internal.Types.CborBytes (CborBytes, cborBytesToHex)
@@ -555,6 +557,11 @@ utxosAtScriptHash _address = pure (Left $ ClientOtherError "Not Implemented")
 utxosWithAssetClass
   :: AssetClass -> BlockfrostServiceM (Either ClientError UtxoMap)
 utxosWithAssetClass _address = pure (Left $ ClientOtherError "Not Implemented")
+
+utxosWithCurrency
+  :: CurrencySymbol -> Maybe TokenName -> BlockfrostServiceM (Either ClientError UtxoMap)
+utxosWithCurrency _ _ = pure (Left $ ClientOtherError "Not Implemented")
+
 
 getUtxoByOref
   :: TransactionInput

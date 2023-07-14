@@ -6,6 +6,7 @@ module Contract.Utxos
   , utxosAt
   , utxosAtScriptHash
   , utxosWithAssetClass
+  , utxosWithCurrencySymbol
   , module X
   ) where
 
@@ -15,16 +16,12 @@ import Contract.Log (logWarn')
 import Contract.Monad (Contract, liftContractM, liftedE)
 import Contract.Prelude (for)
 import Control.Monad.Reader.Class (asks)
-import Ctl.Internal.BalanceTx.Sync (getControlledAddresses, isCip30Wallet)
 import Ctl.Internal.BalanceTx.Sync
   ( getControlledAddresses
   , isCip30Wallet
-  , syncBackendWithWallet
-  , withoutSync
   )
-import Ctl.Internal.Cardano.Types.Value (AssetClass)
+import Ctl.Internal.Cardano.Types.Value (AssetClass, CurrencySymbol)
 import Ctl.Internal.Contract.Monad (getQueryHandle)
-import Ctl.Internal.Contract.Wallet as Wallet
 import Ctl.Internal.Plutus.Conversion
   ( fromPlutusAddress
   , toPlutusTxOutput
@@ -33,10 +30,9 @@ import Ctl.Internal.Plutus.Conversion
 import Ctl.Internal.Plutus.Types.Address (class PlutusAddress, getAddress)
 import Ctl.Internal.Plutus.Types.Transaction (TransactionOutput, UtxoMap)
 import Ctl.Internal.Plutus.Types.Transaction (UtxoMap) as X
-import Ctl.Internal.Plutus.Types.Value (Value)
 import Ctl.Internal.Serialization.Hash (ScriptHash)
 import Ctl.Internal.Types.Transaction (TransactionInput)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe (Nothing))
 import Data.Set (member) as Set
 import Effect.Aff.Class (liftAff)
 
@@ -87,6 +83,15 @@ utxosWithAssetClass ac = do
   cardanoUtxoMap <- liftedE $ liftAff $ queryHandle.utxosWithAssetClass ac
   liftContractM "utxosWithAssetClass: failed to convert utxos"
     $ toPlutusUtxoMap cardanoUtxoMap
+
+utxosWithCurrencySymbol
+  :: CurrencySymbol -> Contract UtxoMap
+utxosWithCurrencySymbol cs = do
+  queryHandle <- getQueryHandle
+  cardanoUtxoMap <- liftedE $ liftAff $ queryHandle.utxosWithCurrency cs Nothing
+  liftContractM "utxosWithCurrencySymbol: failed to convert utxos"
+    $ toPlutusUtxoMap cardanoUtxoMap
+
 
 -- | Queries for an utxo given a transaction input.
 -- | Returns `Nothing` if the output has already been spent.

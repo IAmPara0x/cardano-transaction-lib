@@ -9,6 +9,7 @@ module Ctl.Internal.QueryM.Kupo
   , utxosAt
   , utxosAtScriptHash
   , utxosWithAssetClass
+  , utxosWithCurrency
   ) where
 
 import Prelude
@@ -42,6 +43,7 @@ import Ctl.Internal.Cardano.Types.Transaction
   )
 import Ctl.Internal.Cardano.Types.Value
   ( AssetClass(..)
+  , CurrencySymbol
   , NonAdaAsset
   , Value
   , getCurrencySymbol
@@ -82,7 +84,7 @@ import Ctl.Internal.Types.OutputDatum
   )
 import Ctl.Internal.Types.RawBytes (rawBytesToHex)
 import Ctl.Internal.Types.Scripts (plutusV1Script, plutusV2Script)
-import Ctl.Internal.Types.TokenName (getTokenName, mkTokenName)
+import Ctl.Internal.Types.TokenName (TokenName, getTokenName, mkTokenName)
 import Ctl.Internal.Types.Transaction
   ( TransactionHash(TransactionHash)
   , TransactionInput(TransactionInput)
@@ -99,7 +101,7 @@ import Data.HTTP.Method (Method(GET))
 import Data.Lens (_Right, to, (^?))
 import Data.Map (Map)
 import Data.Map (fromFoldable, isEmpty, lookup, values) as Map
-import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
+import Data.Maybe (Maybe(Just, Nothing), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Show.Generic (genericShow)
 import Data.String (Pattern(Pattern), drop, indexOf, splitAt) as String
@@ -133,11 +135,18 @@ utxosAtScriptHash scriptHash = runExceptT do
   ExceptT $ resolveKupoUtxoMap kupoUtxoMap
 
 utxosWithAssetClass :: AssetClass -> QueryM (Either ClientError UtxoMap)
-utxosWithAssetClass (AssetClass cs tn) = runExceptT do
+utxosWithAssetClass (AssetClass cs tn) =
+  utxosWithCurrency cs (Just tn)
+
+utxosWithCurrency
+  :: CurrencySymbol
+  -> Maybe TokenName
+  -> QueryM (Either ClientError UtxoMap)
+utxosWithCurrency cs tn = runExceptT do
   let
     endpoint = "/matches/" <> byteArrayToHex (getCurrencySymbol cs)
       <> "."
-      <> byteArrayToHex (getTokenName tn)
+      <> maybe "*" (byteArrayToHex <<< getTokenName) tn
       <> "?unspent"
   kupoUtxoMap <- ExceptT $ handleAffjaxResponse <$> kupoGetRequest endpoint
   ExceptT $ resolveKupoUtxoMap kupoUtxoMap
